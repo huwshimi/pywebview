@@ -173,6 +173,7 @@ class Window:
         self.events.moved = Event(self)
         self.events.request_sent = Event(self)
         self.events.response_received = Event(self)
+        self.events.open_files = Event(self)
 
         self.events._pywebviewready = Event(self)
 

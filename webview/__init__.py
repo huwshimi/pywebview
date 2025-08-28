@@ -134,14 +134,15 @@ settings = ImmutableDict(
 
 _state = ImmutableDict(
     {
-        'debug': False,
-        'storage_path': None,
-        'private_mode': True,
-        'user_agent': None,
-        'http_server': False,
-        'ssl': False,
-        'icon': None,
-        'menu': None,
+        "debug": False,
+        "storage_path": None,
+        "private_mode": True,
+        "user_agent": None,
+        "http_server": False,
+        "ssl": False,
+        "icon": None,
+        "menu": None,
+        "file_extensions": None,
     }
 )
 
@@ -177,6 +178,7 @@ def start(
     server_args: dict[Any, Any] = {},
     ssl: bool = False,
     icon: str | None = None,
+    file_extensions: list[str] | None = None
 ):
     """
     Start a GUI loop and display previously created windows. This function must
@@ -217,6 +219,7 @@ def start(
     _state['user_agent'] = user_agent
     _state['http_server'] = http_server
     _state['private_mode'] = private_mode
+    _state['file_extensions'] = file_extensions
 
     if icon:
         _state['icon'] = abspath(icon)

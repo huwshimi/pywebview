@@ -7,6 +7,7 @@ import urllib
 import uuid
 import webbrowser
 from threading import Semaphore, Thread, main_thread
+from pathlib import Path
 
 import AppKit
 import Foundation
@@ -69,6 +70,16 @@ class BrowserView:
             return Foundation.YES if should_close else Foundation.NO
 
         def applicationSupportsSecureRestorableState_(self, app):
+            return Foundation.YES
+
+        def application_openFiles_(self, app, filenames):
+            if _state['file_extensions'] is None:
+                return Foundation.NO
+            accepted_files = [str(filename) for filename in filenames if Path(filename).suffix in _state['file_extensions']]
+            if len(accepted_files) == 0:
+                return Foundation.NO
+            for i in BrowserView.instances.values():
+                i.pywebview_window.events.open_files.set(accepted_files)
             return Foundation.YES
 
     class WindowHost(AppKit.NSWindow):
