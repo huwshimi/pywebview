@@ -348,6 +348,13 @@ class Window:
         self.gui.destroy_window(self.uid)
 
     @_shown_call
+    def close(self) -> None:
+        """
+        Close a web view window
+        """
+        self.gui.close_window(self.uid)
+
+    @_shown_call
     def show(self) -> None:
         """
         Show a web view window.
