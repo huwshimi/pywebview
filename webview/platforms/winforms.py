@@ -1,5 +1,6 @@
 import ctypes
 import logging
+import operator
 import os
 import signal
 import sys
@@ -7,6 +8,7 @@ import tempfile
 import threading
 import winreg
 from ctypes import windll, wintypes
+from functools import reduce
 from platform import machine
 from threading import Event, Semaphore
 
@@ -488,6 +490,18 @@ class BrowserView:
                             target=menu_line_item.function
                         ).start()
                     )
+                    if menu_line_item.shortcut:
+                        keys = [WinForms.Keys.Control]
+                        if menu_line_item.shortcut.isupper():
+                            keys.append(WinForms.Keys.Shift)
+                        key = None
+                        try:
+                            key = getattr(WinForms.Keys, menu_line_item.shortcut.upper())
+                        except AttributeError:
+                            logger.debug(f"Unknown shortcut key: {menu_line_item.shortcut}")
+                        if key:
+                            keys.append(key)
+                            action_item.ShortcutKeys = reduce(operator.or_, keys)
                     return action_item
 
                 def create_submenu(title, line_items, supermenu=None):

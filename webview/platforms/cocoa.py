@@ -774,9 +774,6 @@ class BrowserView:
         AppHelper.callAfter(self.window.orderOut_, self.window)
 
     def destroy(self):
-        AppHelper.callAfter(self.window.close)
-
-    def close(self):
         AppHelper.callAfter(self.window.performClose_, None)
 
     def set_title(self, title):
@@ -1512,12 +1509,6 @@ def destroy_window(uid):
     i = BrowserView.instances.get(uid)
     if i:
         i.destroy()
-
-
-def close_window(uid):
-    i = BrowserView.instances.get(uid)
-    if i:
-        i.close()
 
 
 def hide(uid):
