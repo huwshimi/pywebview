@@ -18,7 +18,7 @@ from PyObjCTools import AppHelper
 from webview import FileDialog, _state, windows
 from webview import settings as webview_settings
 from webview.dom import _dnd_state
-from webview.menu import Menu, MenuAction, MenuSeparator
+from webview.menu import Menu, MenuAction, MenuSeparator, EditMenu, ViewMenu
 from webview.models import Request, Response
 from webview.screen import Screen
 from webview.util import (
@@ -1069,8 +1069,10 @@ class BrowserView:
         self._add_app_menu(main_menu, app_menu_items)
 
         if webview_settings['SHOW_DEFAULT_MENUS']:
-            self._add_view_menu(main_menu)
-            self._add_edit_menu(main_menu)
+            if not next((True for menu_item in user_menu if isinstance(menu_item, ViewMenu)), False):
+                self._add_view_menu(main_menu)
+            if not next((True for menu_item in user_menu if isinstance(menu_item, EditMenu)), False):
+                self._add_edit_menu(main_menu)
 
         self._add_custom_menu(main_menu, regular_menus)
 
@@ -1146,7 +1148,7 @@ class BrowserView:
             self._append_app_name(self.localization['cocoa.menu.quit']), 'terminate:', 'q'
         )
 
-    def _add_view_menu(self, mainMenu):
+    def _add_view_menu(self, mainMenu, append=False):
         """
         Create a default View menu that shows 'Enter Full Screen'.
         """
@@ -1156,8 +1158,11 @@ class BrowserView:
         viewMenu.setTitle_(self.localization['cocoa.menu.view'])
         viewMenuItem = AppKit.NSMenuItem.alloc().init()
         viewMenuItem.setSubmenu_(viewMenu)
-        # Make the view menu the first item after the application menu
-        mainMenu.insertItem_atIndex_(viewMenuItem, 1)
+        if append:
+            mainMenu.addItem_(viewMenuItem)
+        else:
+            # Make the view menu the first item after the application menu
+            mainMenu.insertItem_atIndex_(viewMenuItem, 1)
 
         # TODO: localization of the Enter fullscreen string has no effect
         fullScreenMenuItem = viewMenu.addItemWithTitle_action_keyEquivalent_(
@@ -1167,7 +1172,7 @@ class BrowserView:
             AppKit.NSControlKeyMask | AppKit.NSCommandKeyMask
         )
 
-    def _add_edit_menu(self, mainMenu):
+    def _add_edit_menu(self, mainMenu, append=False):
         """
         Create a default Edit menu that shows Copy/Paste/etc.
         """
@@ -1176,8 +1181,11 @@ class BrowserView:
         editMenu.setTitle_(self.localization['cocoa.menu.edit'])
         editMenuItem = AppKit.NSMenuItem.alloc().init()
         editMenuItem.setSubmenu_(editMenu)
-        # Make the edit menu the first item after the application menu
-        mainMenu.insertItem_atIndex_(editMenuItem, 1)
+        if append:
+            mainMenu.addItem_(editMenuItem)
+        else:
+            # Make the edit menu the first item after the application menu
+            mainMenu.insertItem_atIndex_(editMenuItem, 1)
 
         for title, action, keyEquivalent in [
             (self.localization['cocoa.menu.cut'], 'cut:', 'x'),
@@ -1210,7 +1218,7 @@ class BrowserView:
                 menu_handler.register_action(action_id, item.function)
 
                 menu_item = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                    item.title, 'handleMenuAction:', ''
+                    item.title, 'handleMenuAction:', item.shortcut or ''
                 )
                 menu_item.setTarget_(menu_handler)
                 menu_item.setRepresentedObject_(action_id)

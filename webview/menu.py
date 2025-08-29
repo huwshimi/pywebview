@@ -16,12 +16,19 @@ class Menu:
 
 
 class MenuAction:
-    def __init__(self, title: str, function: Callable[[], Any]) -> None:
+    def __init__(self, title: str, function: Callable[[], Any], shortcut: str | None = None) -> None:
         self.title = title
         self.function = function
-        # TODO: support platform-agnostic shortcut
-        # self.shortcut = shortcut
+        self.shortcut = shortcut
 
 
 class MenuSeparator:
+    pass
+
+
+class EditMenu:
+    pass
+
+
+class ViewMenu:
     pass
