@@ -1175,7 +1175,7 @@ class BrowserView:
             AppKit.NSControlKeyMask | AppKit.NSCommandKeyMask
         )
 
-    def _add_edit_menu(self, mainMenu, append=False):
+    def _add_edit_menu(self, mainMenu, menu: EditMenu | None = None, append=False):
         """
         Create a default Edit menu that shows Copy/Paste/etc.
         """
@@ -1189,6 +1189,11 @@ class BrowserView:
         else:
             # Make the edit menu the first item after the application menu
             mainMenu.insertItem_atIndex_(editMenuItem, 1)
+
+        if menu is not None and menu.items is not None and len(menu.items) > 0:
+            items = menu.items
+            items.append(MenuSeparator())
+            self._process_menu_items(items, editMenu)
 
         for title, action, keyEquivalent in [
             (self.localization['cocoa.menu.cut'], 'cut:', 'x'),
@@ -1236,6 +1241,42 @@ class BrowserView:
 
                 self._process_menu_items(item.items, submenu)
 
+    def _process_menu_items(self, menu_items, parent_menu):
+        for item in menu_items:
+            if isinstance(item, MenuSeparator):
+                parent_menu.addItem_(AppKit.NSMenuItem.separatorItem())
+            elif isinstance(item, MenuAction):
+                # Actions must be registered before application start. Otherwise they are disabled.
+                # Menu handler is a workaround to register actions after application start
+                random_id = str(uuid.uuid4())[:6]
+                # Handle functools.partial objects which don't have __name__ attribute
+                if hasattr(item.function, '__name__'):
+                    func_name = item.function.__name__
+                elif hasattr(item.function, 'func') and hasattr(item.function.func, '__name__'):
+                    func_name = item.function.func.__name__
+                else:
+                    func_name = 'anonymous_function'
+                action_id = func_name + '.' + random_id
+                menu_handler.register_action(action_id, item.function)
+
+                menu_item = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                    item.title, 'handleMenuAction:', item.shortcut or ''
+                )
+                menu_item.setEnabled_(Foundation.YES if item.enabled else Foundation.NO)
+                menu_item.setTarget_(menu_handler)
+                menu_item.setRepresentedObject_(action_id)
+                parent_menu.addItem_(menu_item)
+            elif isinstance(item, Menu):
+                submenu = AppKit.NSMenu.alloc().init()
+                submenu.setTitle_(item.title)
+                submenu.setAutoenablesItems_(False)
+                menu_item = AppKit.NSMenuItem.alloc().init()
+                menu_item.setTitle_(item.title)
+                menu_item.setSubmenu_(submenu)
+                parent_menu.addItem_(menu_item)
+
+                self._process_menu_items(item.items, submenu)
+
     def _add_custom_menu(self, mainMenu, app_menu_list):
         """
         Create a custom menu for the app menu (MacOS bar menu)
@@ -1245,7 +1286,11 @@ class BrowserView:
             return
 
         for app_menu in app_menu_list:
-            if isinstance(app_menu, Menu):
+            if isinstance(app_menu, ViewMenu):
+                self._add_view_menu(mainMenu, append=True)
+            elif isinstance(app_menu, EditMenu):
+                self._add_edit_menu(mainMenu, menu=app_menu, append=True)
+            elif isinstance(app_menu, Menu):
                 submenu = AppKit.NSMenu.alloc().init()
                 submenu.setTitle_(app_menu.title)
                 submenu.setAutoenablesItems_(False)
@@ -1254,11 +1299,6 @@ class BrowserView:
                 menu_item.setSubmenu_(submenu)
                 mainMenu.addItem_(menu_item)
                 self._process_menu_items(app_menu.items, submenu)
-            elif webview_settings['SHOW_DEFAULT_MENUS']:
-                if isinstance(app_menu, ViewMenu):
-                    self._add_view_menu(mainMenu, append=True)
-                elif isinstance(app_menu, EditMenu):
-                    self._add_edit_menu(mainMenu, append=True)
 
     def _append_app_name(self, val):
         """

@@ -16,7 +16,9 @@ class Menu:
 
 
 class MenuAction:
-    def __init__(self, title: str, function: Callable[[], Any], shortcut: str | None = None, enabled=True) -> None:
+    def __init__(
+        self, title: str, function: Callable[[], Any], shortcut: str | None = None, enabled=True
+    ) -> None:
         self.title = title
         self.function = function
         self.shortcut = shortcut
@@ -27,8 +29,10 @@ class MenuSeparator:
     pass
 
 
-class EditMenu:
-    pass
+class EditMenu(Menu):
+    def __init__(self, *args, **kwargs) -> None:
+        # TODO: localization.
+        super().__init__(title="Edit", *args, **kwargs)
 
 
 class ViewMenu:
