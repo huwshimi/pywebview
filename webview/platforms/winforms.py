@@ -198,6 +198,7 @@ class BrowserView:
             self.AutoScaleDimensions = SizeF(96.0, 96.0)
             self.AutoScaleMode = WinForms.AutoScaleMode.Dpi
             hwnd = self.Handle.ToInt32()
+            self._top_level_menu = None
 
             # for chromium edge, need this factor to modify the coordinates
             try:
@@ -490,6 +491,7 @@ class BrowserView:
                             target=menu_line_item.function
                         ).start()
                     )
+                    action_item.Enabled = menu_line_item.enabled
                     if menu_line_item.shortcut:
                         keys = [WinForms.Keys.Control]
                         if menu_line_item.shortcut.isupper():
@@ -520,18 +522,23 @@ class BrowserView:
 
                     return m
 
-                top_level_menu = WinForms.MenuStrip()
+                if self._top_level_menu is None:
+                    self._top_level_menu = WinForms.MenuStrip()
+                    self.Controls.Add(self._top_level_menu)
+                else:
+                    self._top_level_menu.Items.Clear()
+
 
                 for menu in menu_list:
                     # Ignore '__app__' menus (macOS-only feature)
                     if isinstance(menu, Menu) and menu.title == '__app__':
                         continue
                     if isinstance(menu, Menu):
-                        top_level_menu.Items.Add(create_submenu(menu.title, menu.items))
+                        self._top_level_menu.Items.Add(create_submenu(menu.title, menu.items))
                     elif isinstance(menu, MenuAction):
-                        top_level_menu.Items.Add(create_action_item(menu))
+                        self._top_level_menu.Items.Add(create_action_item(menu))
 
-                self.Controls.Add(top_level_menu)
+                self.Controls.Add(self._top_level_menu)
 
             if self.InvokeRequired:
                 self.Invoke(Func[Type](_set_window_menu))
@@ -837,6 +844,14 @@ def set_title(title, uid):
         i.Invoke(Func[Type](_set_title))
     else:
         _set_title()
+
+
+def set_menu(menu, uid):
+    i = BrowserView.instances.get(uid)
+
+    if not i:
+        return
+    i.set_window_menu(menu)
 
 
 def create_confirmation_dialog(title, message, uid):

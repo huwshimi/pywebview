@@ -16,10 +16,11 @@ class Menu:
 
 
 class MenuAction:
-    def __init__(self, title: str, function: Callable[[], Any], shortcut: str | None = None) -> None:
+    def __init__(self, title: str, function: Callable[[], Any], shortcut: str | None = None, enabled=True) -> None:
         self.title = title
         self.function = function
         self.shortcut = shortcut
+        self.enabled = enabled
 
 
 class MenuSeparator:

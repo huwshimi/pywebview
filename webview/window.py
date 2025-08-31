@@ -142,7 +142,7 @@ class Window:
         self.localization_override = localization
         self.vibrancy = vibrancy
         self.screen = screen
-        self.menu = menu
+        self._menu = menu
 
         # Server config
         self._http_port = http_port
@@ -244,6 +244,15 @@ class Window:
         self.events.loaded.wait(15)
         self._title = title
         self.gui.set_title(title, self.uid)
+
+    @property
+    def menu(self) -> list[Menu]:
+        return self._menu
+
+    @menu.setter
+    def menu(self, menu: list[Menu]) -> None:
+        self._menu = menu
+        self.gui.set_menu(menu, self.uid)
 
     @property
     def x(self) -> int:

@@ -779,6 +779,12 @@ class BrowserView:
     def set_title(self, title):
         AppHelper.callAfter(self.window.setTitle_, title)
 
+    def set_menu(self, menu):
+        def _update(menu):
+            new_menu = self._recreate_menus(menu)
+            BrowserView.app.setMainMenu_(new_menu)
+        AppHelper.callAfter(_update, menu)
+
     def toggle_fullscreen(self):
         def toggle():
             if self.is_fullscreen:
@@ -1239,13 +1245,20 @@ class BrowserView:
             return
 
         for app_menu in app_menu_list:
-            submenu = AppKit.NSMenu.alloc().init()
-            submenu.setTitle_(app_menu.title)
-            menu_item = AppKit.NSMenuItem.alloc().init()
-            menu_item.setTitle_(app_menu.title)
-            menu_item.setSubmenu_(submenu)
-            mainMenu.addItem_(menu_item)
-            self._process_menu_items(app_menu.items, submenu)
+            if isinstance(app_menu, Menu):
+                submenu = AppKit.NSMenu.alloc().init()
+                submenu.setTitle_(app_menu.title)
+                submenu.setAutoenablesItems_(False)
+                menu_item = AppKit.NSMenuItem.alloc().init()
+                menu_item.setTitle_(app_menu.title)
+                menu_item.setSubmenu_(submenu)
+                mainMenu.addItem_(menu_item)
+                self._process_menu_items(app_menu.items, submenu)
+            elif webview_settings['SHOW_DEFAULT_MENUS']:
+                if isinstance(app_menu, ViewMenu):
+                    self._add_view_menu(mainMenu, append=True)
+                elif isinstance(app_menu, EditMenu):
+                    self._add_edit_menu(mainMenu, append=True)
 
     def _append_app_name(self, val):
         """
@@ -1458,6 +1471,12 @@ def set_title(title, uid):
     i = BrowserView.instances.get(uid)
     if i:
         i.set_title(title)
+
+
+def set_menu(menu, uid):
+    i = BrowserView.instances.get(uid)
+    if i:
+        i.set_menu(menu)
 
 
 def create_confirmation_dialog(title, message, uid):
