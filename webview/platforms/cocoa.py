@@ -1120,6 +1120,21 @@ class BrowserView:
 
         appMenu.addItem_(AppKit.NSMenuItem.separatorItem())
 
+        def open_settings():
+            for i in BrowserView.instances.values():
+                i.pywebview_window.events.open_settings.set()
+
+        random_id = str(uuid.uuid4())[:6]
+        action_id = 'open_settings.' + random_id
+        menu_handler.register_action(action_id, open_settings)
+        settings_item = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            'Settings...', 'handleMenuAction:', ','
+        )
+        settings_item.setTarget_(menu_handler)
+        settings_item.setRepresentedObject_(action_id)
+        appMenu.addItem_(settings_item)
+        appMenu.addItem_(AppKit.NSMenuItem.separatorItem())
+
         # Set the 'Services' menu for the app and create an app menu item
         appServicesMenu = AppKit.NSMenu.alloc().init()
         BrowserView.app.setServicesMenu_(appServicesMenu)
