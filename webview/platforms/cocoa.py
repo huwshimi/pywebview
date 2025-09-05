@@ -1166,7 +1166,7 @@ class BrowserView:
             self._append_app_name(self.localization['cocoa.menu.quit']), 'terminate:', 'q'
         )
 
-    def _add_view_menu(self, mainMenu, append=False):
+    def _add_view_menu(self, mainMenu, menu: ViewMenu, append=False):
         """
         Create a default View menu that shows 'Enter Full Screen'.
         """
@@ -1181,6 +1181,11 @@ class BrowserView:
         else:
             # Make the view menu the first item after the application menu
             mainMenu.insertItem_atIndex_(viewMenuItem, 1)
+
+        if menu is not None and menu.items is not None and len(menu.items) > 0:
+            items = menu.items
+            items.append(MenuSeparator())
+            self._process_menu_items(items, viewMenu)
 
         # TODO: localization of the Enter fullscreen string has no effect
         fullScreenMenuItem = viewMenu.addItemWithTitle_action_keyEquivalent_(
@@ -1302,7 +1307,7 @@ class BrowserView:
 
         for app_menu in app_menu_list:
             if isinstance(app_menu, ViewMenu):
-                self._add_view_menu(mainMenu, append=True)
+                self._add_view_menu(mainMenu, menu=app_menu, append=True)
             elif isinstance(app_menu, EditMenu):
                 self._add_edit_menu(mainMenu, menu=app_menu, append=True)
             elif isinstance(app_menu, Menu):

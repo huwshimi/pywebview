@@ -35,5 +35,7 @@ class EditMenu(Menu):
         super().__init__(title="Edit", *args, **kwargs)
 
 
-class ViewMenu:
-    pass
+class ViewMenu(Menu):
+    def __init__(self, *args, **kwargs) -> None:
+        # TODO: localization.
+        super().__init__(title="View", *args, **kwargs)
