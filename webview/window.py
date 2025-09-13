@@ -516,7 +516,7 @@ class Window:
             return result
 
     @_shown_call
-    def create_confirmation_dialog(self, title: str, message: str) -> bool:
+    def create_confirmation_dialog(self, title: str, message: str, yes_no=False) -> bool:
         """
         Create a confirmation dialog
         :param title: Dialog title
@@ -524,7 +524,7 @@ class Window:
         :return: True for OK, False for Cancel
         """
 
-        return self.gui.create_confirmation_dialog(title, message, self.uid)
+        return self.gui.create_confirmation_dialog(title, message, self.uid, yes_no)
 
     @_shown_call
     def create_file_dialog(

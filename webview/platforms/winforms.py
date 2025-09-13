@@ -854,13 +854,13 @@ def set_menu(menu, uid):
     i.set_window_menu(menu)
 
 
-def create_confirmation_dialog(title, message, uid):
+def create_confirmation_dialog(title, message, uid, yes_no = False):
     i = BrowserView.instances.get(uid)
 
     if not i:
         return
 
-    result = WinForms.MessageBox.Show(message, title, WinForms.MessageBoxButtons.OKCancel)
+    result = WinForms.MessageBox.Show(message, title, WinForms.MessageBoxButtons.YesNo if yes_no else WinForms.MessageBoxButtons.OKCancel)
     return result == WinForms.DialogResult.OK
 
 

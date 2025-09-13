@@ -1539,13 +1539,14 @@ def set_menu(menu, uid):
         i.set_menu(menu)
 
 
-def create_confirmation_dialog(title, message, uid):
+def create_confirmation_dialog(title, message, uid, yes_no=False):
     def _confirm():
         nonlocal result
 
         i = BrowserView.instances.get(uid)
-        ok = i.localization['global.ok']
-        cancel = i.localization['global.cancel']
+        # TODO: localization
+        ok = "Yes" if yes_no else i.localization['global.ok']
+        cancel = "No" if yes_no else i.localization['global.cancel']
 
         result = BrowserView.display_confirmation_dialog(ok, cancel, message)
         semaphore.release()
