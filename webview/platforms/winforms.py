@@ -494,16 +494,25 @@ class BrowserView:
                     action_item.Enabled = menu_line_item.enabled
                     if menu_line_item.shortcut:
                         keys = [WinForms.Keys.Control]
+
                         if menu_line_item.shortcut.isupper():
                             keys.append(WinForms.Keys.Shift)
                         key = None
-                        try:
-                            key = getattr(WinForms.Keys, menu_line_item.shortcut.upper())
-                        except AttributeError:
-                            logger.debug(f"Unknown shortcut key: {menu_line_item.shortcut}")
+                        display: str | None = None
+                        match menu_line_item.shortcut:
+                            case ",":
+                                key = WinForms.Keys.Oemcomma
+                                display = "Ctrl+,"
+                            case _:
+                                try:
+                                    key = getattr(WinForms.Keys, menu_line_item.shortcut.upper())
+                                except AttributeError:
+                                    logger.debug(f"Unknown shortcut key: {menu_line_item.shortcut}")
                         if key:
                             keys.append(key)
                             action_item.ShortcutKeys = reduce(operator.or_, keys)
+                        if display:
+                            action_item.ShortcutKeyDisplayString = display
                     return action_item
 
                 def create_submenu(title, line_items, supermenu=None):
@@ -527,7 +536,6 @@ class BrowserView:
                     self.Controls.Add(self._top_level_menu)
                 else:
                     self._top_level_menu.Items.Clear()
-
 
                 for menu in menu_list:
                     # Ignore '__app__' menus (macOS-only feature)
