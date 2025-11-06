@@ -105,6 +105,8 @@ class BrowserView:
         def windowWillClose_(self, notification):
             # Delete the closed instance from the dict
             i = BrowserView.get_instance('window', notification.object())
+            # Reset back to the app.
+            BrowserView.app.setMainMenu_(i._recreate_menus(_state['menu']))
             del BrowserView.instances[i.uid]
 
             if i.pywebview_window in windows:
@@ -126,9 +128,10 @@ class BrowserView:
             i.window.release()
 
             i.closed.set()
-            if BrowserView.instances == {}:
+            if BrowserView.instances == {} and webview_settings['COCOA_TERMINATE_WHEN_LAST_WINDOW_CLOSED']:
                 BrowserView.app.stop_(self)
                 BrowserView.app.abortModal()
+
 
         def windowDidResize_(self, notification):
             i = BrowserView.get_instance('window', notification.object())
@@ -1120,21 +1123,6 @@ class BrowserView:
 
         appMenu.addItem_(AppKit.NSMenuItem.separatorItem())
 
-        def open_settings():
-            for i in BrowserView.instances.values():
-                i.pywebview_window.events.open_settings.set()
-
-        random_id = str(uuid.uuid4())[:6]
-        action_id = 'open_settings.' + random_id
-        menu_handler.register_action(action_id, open_settings)
-        settings_item = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            'Settings...', 'handleMenuAction:', ','
-        )
-        settings_item.setTarget_(menu_handler)
-        settings_item.setRepresentedObject_(action_id)
-        appMenu.addItem_(settings_item)
-        appMenu.addItem_(AppKit.NSMenuItem.separatorItem())
-
         # Set the 'Services' menu for the app and create an app menu item
         appServicesMenu = AppKit.NSMenu.alloc().init()
         BrowserView.app.setServicesMenu_(appServicesMenu)
@@ -1228,40 +1216,6 @@ class BrowserView:
         Process menu items and add them to the parent menu.
         Used for both custom menus and app menu items.
         """
-        for item in menu_items:
-            if isinstance(item, MenuSeparator):
-                parent_menu.addItem_(AppKit.NSMenuItem.separatorItem())
-            elif isinstance(item, MenuAction):
-                # Actions must be registered before application start. Otherwise they are disabled.
-                # Menu handler is a workaround to register actions after application start
-                random_id = str(uuid.uuid4())[:6]
-                # Handle functools.partial objects which don't have __name__ attribute
-                if hasattr(item.function, '__name__'):
-                    func_name = item.function.__name__
-                elif hasattr(item.function, 'func') and hasattr(item.function.func, '__name__'):
-                    func_name = item.function.func.__name__
-                else:
-                    func_name = 'anonymous_function'
-                action_id = func_name + '.' + random_id
-                menu_handler.register_action(action_id, item.function)
-
-                menu_item = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                    item.title, 'handleMenuAction:', item.shortcut or ''
-                )
-                menu_item.setTarget_(menu_handler)
-                menu_item.setRepresentedObject_(action_id)
-                parent_menu.addItem_(menu_item)
-            elif isinstance(item, Menu):
-                submenu = AppKit.NSMenu.alloc().init()
-                submenu.setTitle_(item.title)
-                menu_item = AppKit.NSMenuItem.alloc().init()
-                menu_item.setTitle_(item.title)
-                menu_item.setSubmenu_(submenu)
-                parent_menu.addItem_(menu_item)
-
-                self._process_menu_items(item.items, submenu)
-
-    def _process_menu_items(self, menu_items, parent_menu):
         for item in menu_items:
             if isinstance(item, MenuSeparator):
                 parent_menu.addItem_(AppKit.NSMenuItem.separatorItem())

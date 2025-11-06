@@ -128,21 +128,22 @@ settings = ImmutableDict(
         'IGNORE_SSL_ERRORS': False,
         'SHOW_DEFAULT_MENUS': True,
         'WEBVIEW2_RUNTIME_PATH': None,
+        'COCOA_TERMINATE_WHEN_LAST_WINDOW_CLOSED': False,
     }
 )
 
 
 _state = ImmutableDict(
     {
-        "debug": False,
-        "storage_path": None,
-        "private_mode": True,
-        "user_agent": None,
-        "http_server": False,
-        "ssl": False,
-        "icon": None,
-        "menu": None,
-        "file_extensions": None,
+        'debug': False,
+        'storage_path': None,
+        'private_mode': True,
+        'user_agent': None,
+        'http_server': False,
+        'ssl': False,
+        'icon': None,
+        'menu': None,
+        'file_extensions': None,
     }
 )
 
